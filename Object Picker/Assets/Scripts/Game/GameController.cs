@@ -15,6 +15,12 @@ namespace SampleProjects.ObjectPicker
 
 		GameUIHandler ui;
 
+		public delegate void HandleGameState ();
+
+		public static event HandleGameState OnGameSetup;
+		public static event HandleGameState OnGameStart;
+		public static event HandleGameState OnGameOver;
+
 		private void Awake ()
 		{
 			if (Instance != null)
@@ -25,14 +31,11 @@ namespace SampleProjects.ObjectPicker
 			ui = GetComponent<GameUIHandler> ();
 		}
 
-		void Start ()
+		private void Start ()
 		{
-
-		}
-
-		void Update ()
-		{
-
+			OnGameSetup?.Invoke ();
+			ui.UpdatePointsDisplay (currentPoints);
+			ui.UpdateObjectiveCount (objectiveCompleted, totalObjective);
 		}
 
 		private void OnEnable ()
@@ -43,6 +46,11 @@ namespace SampleProjects.ObjectPicker
 		private void OnDisable ()
 		{
 			Objective.OnOjectiveCompleted -= CompleteObjective;
+		}
+
+		public void StartGame ()
+		{
+			OnGameStart?.Invoke ();
 		}
 
 		private void CompleteObjective (int points)
@@ -57,6 +65,9 @@ namespace SampleProjects.ObjectPicker
 			{
 				Debug.Log ("Game completed.");
 				ui.EnableObjectiveCheck ();
+				OnGameOver?.Invoke ();
+
+				Cursor.lockState = CursorLockMode.None;
 			}
 		}
 

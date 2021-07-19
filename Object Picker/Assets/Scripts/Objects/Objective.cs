@@ -11,6 +11,7 @@ namespace SampleProjects.ObjectPicker
 
 		bool isHolding;
 		bool onObjectArea;
+		bool colected;
 
 		Rigidbody _rigidbody;
 
@@ -33,27 +34,24 @@ namespace SampleProjects.ObjectPicker
 
 		public override void DoAction ()
 		{
-			if (isHolding) return;
+			if (isHolding || colected) return;
 
 			isHolding = true;
 			_rigidbody.isKinematic = true;
-			//transform.parent = Player.Instance.GetItemSlot ();
 
 			base.DoAction ();
 		}
 
 		public override void Release ()
 		{
+			if (colected) return;
+
 			if (onObjectArea)
 			{
-				//transform.parent = target;
+				colected = true;
 				transform.position = target.position;
 				isInteractable = false;
 				OnOjectiveCompleted?.Invoke (points);
-			}
-			else
-			{
-				transform.parent = null;
 			}
 
 			_rigidbody.isKinematic = false;

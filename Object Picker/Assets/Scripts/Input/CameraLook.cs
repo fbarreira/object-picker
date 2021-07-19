@@ -16,27 +16,13 @@ namespace SampleProjects.ObjectPicker
 		Vector2 mouseInput;
 		Vector2 rotation;
 
-		bool isLocked = false;
-
 		void Start ()
 		{
 			Cursor.lockState = CursorLockMode.Locked;
 		}
 
-		private void OnEnable ()
-		{
-			InputHandler.OnPauseClicked += HandlePause;
-		}
-
-		private void OnDisable ()
-		{
-			InputHandler.OnPauseClicked -= HandlePause;
-		}
-
 		void Update ()
 		{
-			if (isLocked) return;
-
 			mouseInput = input.GetPlayerLook ();
 			rotation.x += mouseInput.x * horizontalSensitivity;
 			rotation.y += mouseInput.y * verticalSensitivity;
@@ -48,11 +34,6 @@ namespace SampleProjects.ObjectPicker
 		private void FixedUpdate ()
 		{
 			transform.position = target.position;
-		}
-
-		private void HandlePause ()
-		{
-			isLocked = !isLocked;
 		}
 	}
 }

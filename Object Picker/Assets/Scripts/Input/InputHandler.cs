@@ -9,8 +9,6 @@ namespace SampleProjects.ObjectPicker
 	public class InputHandler : MonoBehaviour
 	{
 		[SerializeField] bool controlEnabled = true;
-		[SerializeField] float slowClickTime = .5f;
-		[SerializeField] float holdTime = 1f;
 
 		InputMaster inputActions;
 
@@ -45,12 +43,18 @@ namespace SampleProjects.ObjectPicker
 			inputActions.Player.Interact.performed += Interact_performed;
 			inputActions.Player.Interact.canceled += Interact_canceled;
 			inputActions.Player.Pause.performed += Pause_performed;
+
+			GameController.OnGameStart += UnlockControls;
+			GameController.OnGameOver += LockControls;
 		}
 
 		private void OnDisable ()
 		{
 			inputActions.Disable ();
 			inputActions.Player.Interact.started -= Interact_started;
+
+			GameController.OnGameStart -= UnlockControls;
+			GameController.OnGameOver -= LockControls;
 		}
 
 		private void Update ()
@@ -61,31 +65,41 @@ namespace SampleProjects.ObjectPicker
 			}
 		}
 
-		public Vector2 GetPlayerMovement () => Actions.Player.Movement.ReadValue<Vector2> ();
+		public Vector2 GetPlayerMovement () => GetMovementInput ();
 
-		public Vector2 GetPlayerLook () => Actions.Player.Look.ReadValue<Vector2> ();
+		public Vector2 GetPlayerLook () => GetMousePosition ();
 
-		public bool GetMousePress () => isMousePressed;
+		public bool GetMousePress () => isMousePressed && controlEnabled;
 
-		public bool GetMouseClick () => isMouseClicked;
+		public bool GetMouseClick () => isMouseClicked && controlEnabled;
 
-		public bool GetMouseSlowClick () => isMouseSlowClicked;
+		public bool GetMouseSlowClick () => isMouseSlowClicked && controlEnabled;
 
-		public bool GetMouseHold () => isMouseHolding;
+		public bool GetMouseHold () => isMouseHolding && controlEnabled;
 
-		public bool GetMouseReleased () => Actions.Player.Interact.ReadValue<float> () == 0;
+		public bool GetMouseReleased () => Actions.Player.Interact.ReadValue<float> () == 0 && controlEnabled;
 
 		private void Pause_performed (InputAction.CallbackContext obj)
 		{
-			OnPauseClicked?.Invoke ();
+			if (controlEnabled)
+				OnPauseClicked?.Invoke ();
 		}
 
-		public Vector3 GetMousePosition ()
+		private Vector3 GetMovementInput ()
 		{
-			return GetPlayerLook ();
+			if (controlEnabled)
+				return Actions.Player.Movement.ReadValue<Vector2> ();
+			else return Vector3.zero;
 		}
 
-		private void Interact_canceled (UnityEngine.InputSystem.InputAction.CallbackContext obj)
+		private Vector3 GetMousePosition ()
+		{
+			if (controlEnabled)
+				return Actions.Player.Look.ReadValue<Vector2> ();
+			else return Vector3.zero;
+		}
+
+		private void Interact_canceled (InputAction.CallbackContext obj)
 		{
 			Debug.Log ("Mouse released.");
 			isMouseHolding = false;
@@ -94,7 +108,7 @@ namespace SampleProjects.ObjectPicker
 			isMouseClicked = false;
 		}
 
-		private void Interact_performed (UnityEngine.InputSystem.InputAction.CallbackContext obj)
+		private void Interact_performed (InputAction.CallbackContext obj)
 		{
 			if (pressTime >= .5f)
 			{
@@ -108,7 +122,7 @@ namespace SampleProjects.ObjectPicker
 			}
 		}
 
-		private void Interact_started (UnityEngine.InputSystem.InputAction.CallbackContext obj)
+		private void Interact_started (InputAction.CallbackContext obj)
 		{
 			Debug.Log ("Mouse pressed.");
 			StartPressTimer ();
@@ -120,6 +134,16 @@ namespace SampleProjects.ObjectPicker
 
 			pressTime = 0;
 			isMousePressed = true;
+		}
+
+		private void LockControls ()
+		{
+			controlEnabled = false;
+		}
+
+		private void UnlockControls ()
+		{
+			controlEnabled = true;
 		}
 	}
 }
